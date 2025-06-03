@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { FaHeart, FaRegHeart, FaComment, FaShare } from 'react-icons/fa';
+import { useAuth } from '../../src/context/AuthContext';
 
 type Post = {
   id: number;
@@ -15,6 +16,7 @@ type Post = {
 };
 
 const IndexMainContent = () => {
+  const { user, login } = useAuth(); // 🔑 Auth state
   const [posts, setPosts] = useState<Post[]>([
     {
       id: 1,
@@ -45,6 +47,10 @@ const IndexMainContent = () => {
   const [newPostCaption, setNewPostCaption] = useState('');
 
   const handleLike = (postId: number) => {
+    if (!user) {
+      login(); // 🔐 Prompt login
+      return;
+    }
     setPosts(posts.map(post => {
       if (post.id === postId) {
         return {
@@ -59,13 +65,17 @@ const IndexMainContent = () => {
 
   const handlePostSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    if (!user) {
+      login(); // 🔐 Prompt login
+      return;
+    }
     if (!newPostCaption.trim()) return;
 
     const newPost: Post = {
       id: posts.length + 1,
       user: {
-        name: 'Current User',
-        avatar: 'https://i.pravatar.cc/150?img=3',
+        name: user.displayName || 'Current User',
+        avatar: user.photoURL || 'https://i.pravatar.cc/150?img=3',
       },
       image: 'https://via.placeholder.com/500x300',
       caption: newPostCaption,
@@ -87,15 +97,23 @@ const IndexMainContent = () => {
             <div className="flex items-start space-x-3">
               <div className="avatar">
                 <div className="w-12 rounded-full">
-                  <img src="https://i.pravatar.cc/150?img=3" alt="User" />
+                  <img
+                    src={user?.photoURL || 'https://i.pravatar.cc/150?img=3'}
+                    alt="User"
+                  />
                 </div>
               </div>
               <div className="flex-1">
                 <textarea
                   className="textarea textarea-bordered w-full"
-                  placeholder="What are you selling today?"
+                  placeholder={
+                    user
+                      ? 'What are you selling today?'
+                      : 'Please login to create a post'
+                  }
                   value={newPostCaption}
                   onChange={(e) => setNewPostCaption(e.target.value)}
+                  disabled={!user}
                 ></textarea>
                 <div className="flex justify-between items-center mt-2">
                   <div>
@@ -103,9 +121,14 @@ const IndexMainContent = () => {
                       type="file"
                       className="file-input file-input-bordered file-input-sm"
                       accept="image/*"
+                      disabled={!user}
                     />
                   </div>
-                  <button type="submit" className="btn btn-primary btn-sm">
+                  <button
+                    type="submit"
+                    className="btn btn-primary btn-sm"
+                    disabled={!user}
+                  >
                     Post
                   </button>
                 </div>
@@ -175,8 +198,11 @@ const IndexMainContent = () => {
                 <div className="flex-1">
                   <input
                     type="text"
-                    placeholder="Write a comment..."
+                    placeholder={
+                      user ? 'Write a comment...' : 'Login to comment...'
+                    }
                     className="input input-bordered w-full input-sm"
+                    disabled={!user}
                   />
                 </div>
               </div>

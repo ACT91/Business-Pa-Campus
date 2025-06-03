@@ -1,10 +1,10 @@
 import { NavLink } from 'react-router-dom';
-import { 
-  FaHome, 
-  FaUserFriends, 
-  FaBell, 
-  FaEnvelope, 
-  FaUser 
+import {
+  FaHome,
+  FaUserFriends,
+  FaBell,
+  FaEnvelope,
+  FaUser
 } from 'react-icons/fa';
 import { useState, useEffect } from 'react';
 
@@ -15,15 +15,13 @@ const BottomNav = () => {
   useEffect(() => {
     const handleScroll = () => {
       const currentScrollY = window.scrollY;
-      
+
       if (currentScrollY > lastScrollY && currentScrollY > 50) {
-        // Scrolling down
-        setVisible(false);
+        setVisible(false); // Scrolling down
       } else if (currentScrollY < lastScrollY) {
-        // Scrolling up
-        setVisible(true);
+        setVisible(true); // Scrolling up
       }
-      
+
       setLastScrollY(currentScrollY);
     };
 
@@ -32,9 +30,12 @@ const BottomNav = () => {
   }, [lastScrollY]);
 
   return (
-    <nav className={`btm-nav lg:hidden fixed transition-transform duration-300 ease-in-out ${
-      visible ? 'translate-y-0' : 'translate-y-full'
-    }`}>
+    <nav
+  className={`btm-nav fixed w-full bottom-[max(1rem,env(safe-area-inset-bottom))] z-50 lg:hidden transition-transform duration-300 ease-in-out bg-white dark:bg-black ${
+    visible ? 'translate-y-0' : 'translate-y-full'
+  }`}
+>
+
       <NavLink to="/" className={({ isActive }) => isActive ? 'active' : ''}>
         <FaHome className="text-xl mx-auto" />
       </NavLink>

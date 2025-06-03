@@ -1,20 +1,19 @@
-@import "tailwindcss";
-@plugin "daisyui";
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import 'tailwindcss';
+@plugin 'daisyui';
 
 /* Bottom navigation styling */
 .btm-nav {
   position: fixed;
-  bottom: 0;
+  bottom: env(safe-area-inset-bottom); /* ← this is the key */
   width: 100%;
   display: flex;
   justify-content: space-around;
   padding: 0.5rem 0;
   background: white;
   box-shadow: 0 -2px 10px rgba(0,0,0,0.1);
+  z-index: 999;
 }
+
 
 .btm-nav a {
   display: flex;
@@ -27,9 +26,8 @@
   color: hsl(var(--p)); /* DaisyUI primary color */
 }
 
-/* Ensure content isn't hidden behind nav */
 main {
-  padding-bottom: 4rem;
+  padding-bottom: calc(4rem + env(safe-area-inset-bottom)); /* Ensure main content isn't hidden */
 }
 
 @media (min-width: 1024px) {
