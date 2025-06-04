@@ -1,7 +1,6 @@
-import { db, storage } from '../../src/firebase';
+import { db, storage, auth } from '../../src/firebase';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { collection, addDoc, Timestamp, updateDoc } from 'firebase/firestore';
-import { auth } from '../../src/firebase';
 
 export const createPost = async (imageFile: File, postText: string) => {
   try {
@@ -20,11 +19,13 @@ export const createPost = async (imageFile: File, postText: string) => {
       ImageURL: imageUrl,
       UserID: auth.currentUser.uid,
       UserName: auth.currentUser.displayName || "Anonymous",
+      UserPhotoURL: auth.currentUser.photoURL || "", // Store the photoURL
       TimePosted: Timestamp.now(),
       DatePosted: new Date().toISOString(),
       NumberOfLikes: 0,
       NumberOfComments: 0,
       IsLiked: false,
+      LikedBy: []
     };
 
     // Save to Firestore

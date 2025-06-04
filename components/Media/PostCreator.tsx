@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { createPost } from '../../utils/PostUtils/createPost';
-import { useAuth } from '../../src/context/AuthContext';
+import { useAuth } from '../../src/context/useAuth';
 
 const PostCreator: React.FC<{ onPostCreated?: () => void }> = ({ onPostCreated }) => {
   const [newPostCaption, setNewPostCaption] = useState('');

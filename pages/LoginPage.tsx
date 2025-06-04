@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { useAuth } from '../src/context/AuthContext';
+import { useAuth } from '../src/context/useAuth';
 import { useNavigate } from 'react-router-dom';
 import Header from '../components/layout/Header'; // adjust path as needed
 import { FaGoogle, FaApple, FaFacebookF } from 'react-icons/fa';

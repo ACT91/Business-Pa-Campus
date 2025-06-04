@@ -3,7 +3,8 @@ import type { ReactNode } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import HomePage from '../pages/HomePage';
 import LoginPage from '../pages/LoginPage';
-import { AuthProvider, useAuth } from '../src/context/AuthContext';
+import { useAuth } from '../src/context/useAuth';
+import { AuthProvider } from '../src/context/AuthContext';
 const ProtectedRoute: React.FC<{ children: ReactNode }> = ({ children }) => {
   const { user } = useAuth();
   if (!user) {

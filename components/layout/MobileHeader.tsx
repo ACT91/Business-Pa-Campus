@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import { FaBars } from 'react-icons/fa';
-import { useAuth } from '../../src/context/AuthContext';
+import { useAuth } from '../../src/context/useAuth';
 
 const MobileHeader = () => {
   const [isOpen, setIsOpen] = useState(false);

@@ -12,12 +12,14 @@ import {
 } from 'firebase/firestore';
 import { FaHeart, FaRegHeart, FaComment, FaShare } from 'react-icons/fa';
 import { db } from '../../src/firebase';
-import { useAuth } from '../../src/context/AuthContext';
+import { useAuth } from '../../src/context/useAuth';
 import PostCreator from '../Media/PostCreator';
+import { formatTimePosted } from '../../utils/TimeUtils/formatTime';
 
 type Post = {
   id: string;
   user: {
+    uid: string;
     name: string;
     avatar: string;
   };
@@ -26,6 +28,7 @@ type Post = {
   likes: number;
   comments: number;
   isLiked: boolean;
+  timePosted: Date;
 };
 
 const IndexMainContent = () => {
@@ -41,16 +44,16 @@ const IndexMainContent = () => {
         return {
           id: doc.id,
           user: {
+            uid: data.UserID,
             name: data.UserName,
-            avatar: user?.uid === data.UserID 
-              ? user?.photoURL || `https://i.pravatar.cc/150?u=${data.UserID}`
-              : `https://i.pravatar.cc/150?u=${data.UserID}`,
+            avatar: data.UserPhotoURL || `https://i.pravatar.cc/150?u=${data.UserID}`,
           },
-          image: data.ImageURL,  // Changed from PostURL to ImageURL
+          image: data.ImageURL,
           caption: data.PostItSelf,
           likes: data.NumberOfLikes || 0,
           comments: data.NumberOfComments || 0,
           isLiked: user ? data.LikedBy?.includes(user.uid) : false,
+          timePosted: data.TimePosted?.toDate() || new Date(),
         };
       });
       setPosts(updatedPosts);
@@ -72,13 +75,9 @@ const IndexMainContent = () => {
     });
   };
 
-  const handlePostCreated = () => {
-    console.log('Post created!');
-  };
-
   return (
     <div className="container mx-auto px-4 py-6">
-      <PostCreator onPostCreated={handlePostCreated} />
+      <PostCreator onPostCreated={() => {}} />
 
       {posts.map((post) => (
         <div key={post.id} className="card bg-base-100 shadow-md mb-6">
@@ -87,10 +86,10 @@ const IndexMainContent = () => {
               <div className="avatar">
                 <div className="w-10 rounded-full">
                   <img 
-                    src={post.user.avatar} 
+                    src={post.user.avatar}
                     alt={post.user.name}
                     onError={(e) => {
-                      (e.target as HTMLImageElement).src = `https://i.pravatar.cc/150?u=${post.id}`;
+                      (e.target as HTMLImageElement).src = `https://i.pravatar.cc/150?u=${post.user.uid}`;
                     }}
                   />
                 </div>
@@ -98,15 +97,15 @@ const IndexMainContent = () => {
               <div>
                 <h3 className="font-semibold">{post.user.name}</h3>
                 <p className="text-sm text-gray-500">
-                  {new Date(post.id).toLocaleString()} {/* Temporary - implement proper time formatting */}
+                  {formatTimePosted(post.timePosted)}
                 </p>
               </div>
             </div>
 
             <figure className="mb-4">
               <img 
-                src={post.image} 
-                alt="Post" 
+                src={post.image}
+                alt="Post"
                 className="rounded-lg w-full"
                 onError={(e) => {
                   (e.target as HTMLImageElement).src = 'https://via.placeholder.com/500x300';

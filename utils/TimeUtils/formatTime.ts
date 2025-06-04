@@ -1,20 +1,31 @@
-export const formatTimePosted = (dateString: string) => {
+export const formatTimePosted = (date: Date): string => {
   const now = new Date();
-  const postDate = new Date(dateString);
-  const diffInSeconds = Math.floor((now.getTime() - postDate.getTime()) / 1000);
+  const seconds = Math.floor((now.getTime() - date.getTime()) / 1000);
+  
+  const intervals = {
+    minute: 60,
+    hour: 3600,
+    day: 86400,
+    month: 2592000
+  };
 
-  if (diffInSeconds < 60) {
-    return `${diffInSeconds} seconds ago`;
-  } else if (diffInSeconds < 3600) {
-    const minutes = Math.floor(diffInSeconds / 60);
-    return `${minutes} minute${minutes === 1 ? "" : "s"} ago`;
-  } else if (diffInSeconds < 86400) {
-    const hours = Math.floor(diffInSeconds / 3600);
-    return `${hours} hour${hours === 1 ? "" : "s"} ago`;
-  } else if (diffInSeconds < 172800) {
-    return "Yesterday";
-  } else {
-    const days = Math.floor(diffInSeconds / 86400);
-    return `${days} days ago (${postDate.toLocaleDateString()})`;
+  if (seconds < intervals.minute) return 'Just now';
+  if (seconds < intervals.hour) {
+    const minutes = Math.floor(seconds / intervals.minute);
+    return `${minutes} min${minutes === 1 ? '' : 's'} ago`;
   }
+  if (seconds < intervals.day) {
+    const hours = Math.floor(seconds / intervals.hour);
+    return `${hours} hour${hours === 1 ? '' : 's'} ago`;
+  }
+  if (seconds < intervals.month) {
+    const days = Math.floor(seconds / intervals.day);
+    return `${days} day${days === 1 ? '' : 's'} ago`;
+  }
+
+  return date.toLocaleDateString('en-US', {
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric'
+  });
 };
