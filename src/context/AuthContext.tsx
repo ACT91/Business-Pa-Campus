@@ -11,21 +11,20 @@ import {
   signInWithPopup,
   signOut,
   onAuthStateChanged,
+  updateProfile,
   type User,
 } from 'firebase/auth';
-import { app } from '../firebase'; // Make sure `app` is exported from firebase.ts
+import { app } from '../firebase';
 
-// Define the shape of the context
 interface AuthContextType {
   user: User | null;
   login: () => Promise<void>;
   logout: () => Promise<void>;
+  updateUserProfile: (displayName: string, photoURL: string) => Promise<void>;
 }
 
-// Create the context
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-// Custom hook for consuming the context
 export const useAuth = () => {
   const context = useContext(AuthContext);
   if (!context) {
@@ -34,10 +33,8 @@ export const useAuth = () => {
   return context;
 };
 
-// AuthProvider component
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
-
   const auth = getAuth(app);
 
   const login = async () => {
@@ -57,13 +54,25 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
+  const updateUserProfile = async (displayName: string, photoURL: string) => {
+    if (!auth.currentUser) return;
+    try {
+      await updateProfile(auth.currentUser, { displayName, photoURL });
+      setUser({ ...auth.currentUser, displayName, photoURL });
+    } catch (error) {
+      console.error('Profile update error:', error);
+    }
+  };
+
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, setUser);
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      setUser(user);
+    });
     return () => unsubscribe();
   }, [auth]);
 
   return (
-    <AuthContext.Provider value={{ user, login, logout }}>
+    <AuthContext.Provider value={{ user, login, logout, updateUserProfile }}>
       {children}
     </AuthContext.Provider>
   );

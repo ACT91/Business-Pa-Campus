@@ -1,9 +1,22 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import {
+  collection,
+  doc,
+  onSnapshot,
+  query,
+  orderBy,
+  updateDoc,
+  arrayUnion,
+  arrayRemove,
+  increment,
+} from 'firebase/firestore';
 import { FaHeart, FaRegHeart, FaComment, FaShare } from 'react-icons/fa';
+import { db } from '../../src/firebase';
 import { useAuth } from '../../src/context/AuthContext';
+import PostCreator from '../Media/PostCreator';
 
 type Post = {
-  id: number;
+  id: string;
   user: {
     name: string;
     avatar: string;
@@ -16,159 +29,98 @@ type Post = {
 };
 
 const IndexMainContent = () => {
-  const { user, login } = useAuth(); // 🔑 Auth state
-  const [posts, setPosts] = useState<Post[]>([
-    {
-      id: 1,
-      user: {
-        name: 'John Doe',
-        avatar: 'https://i.pravatar.cc/150?img=1',
-      },
-      image: 'https://via.placeholder.com/500x300',
-      caption: 'Selling my barely used textbooks for Business 101. Great condition!',
-      likes: 24,
-      comments: 5,
-      isLiked: false,
-    },
-    {
-      id: 2,
-      user: {
-        name: 'Jane Smith',
-        avatar: 'https://i.pravatar.cc/150?img=2',
-      },
-      image: 'https://via.placeholder.com/500x300',
-      caption: 'Handmade jewelry for sale. Perfect gifts for friends!',
-      likes: 42,
-      comments: 8,
-      isLiked: true,
-    },
-  ]);
+  const { user, login } = useAuth();
+  const [posts, setPosts] = useState<Post[]>([]);
 
-  const [newPostCaption, setNewPostCaption] = useState('');
+  useEffect(() => {
+    const q = query(collection(db, 'posts'), orderBy('TimePosted', 'desc'));
 
-  const handleLike = (postId: number) => {
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      const updatedPosts: Post[] = snapshot.docs.map(doc => {
+        const data = doc.data();
+        return {
+          id: doc.id,
+          user: {
+            name: data.UserName,
+            avatar: user?.uid === data.UserID 
+              ? user?.photoURL || `https://i.pravatar.cc/150?u=${data.UserID}`
+              : `https://i.pravatar.cc/150?u=${data.UserID}`,
+          },
+          image: data.ImageURL,  // Changed from PostURL to ImageURL
+          caption: data.PostItSelf,
+          likes: data.NumberOfLikes || 0,
+          comments: data.NumberOfComments || 0,
+          isLiked: user ? data.LikedBy?.includes(user.uid) : false,
+        };
+      });
+      setPosts(updatedPosts);
+    });
+
+    return () => unsubscribe();
+  }, [user]);
+
+  const handleLike = async (postId: string, isLiked: boolean) => {
     if (!user) {
-      login(); // 🔐 Prompt login
+      login();
       return;
     }
-    setPosts(posts.map(post => {
-      if (post.id === postId) {
-        return {
-          ...post,
-          likes: post.isLiked ? post.likes - 1 : post.likes + 1,
-          isLiked: !post.isLiked
-        };
-      }
-      return post;
-    }));
+
+    const postRef = doc(db, 'posts', postId);
+    await updateDoc(postRef, {
+      NumberOfLikes: isLiked ? increment(-1) : increment(1),
+      LikedBy: isLiked ? arrayRemove(user.uid) : arrayUnion(user.uid),
+    });
   };
 
-  const handlePostSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!user) {
-      login(); // 🔐 Prompt login
-      return;
-    }
-    if (!newPostCaption.trim()) return;
-
-    const newPost: Post = {
-      id: posts.length + 1,
-      user: {
-        name: user.displayName || 'Current User',
-        avatar: user.photoURL || 'https://i.pravatar.cc/150?img=3',
-      },
-      image: 'https://via.placeholder.com/500x300',
-      caption: newPostCaption,
-      likes: 0,
-      comments: 0,
-      isLiked: false,
-    };
-
-    setPosts([newPost, ...posts]);
-    setNewPostCaption('');
+  const handlePostCreated = () => {
+    console.log('Post created!');
   };
 
   return (
     <div className="container mx-auto px-4 py-6">
-      {/* Create Post */}
-      <div className="card bg-base-100 shadow-md mb-6">
-        <div className="card-body">
-          <form onSubmit={handlePostSubmit}>
-            <div className="flex items-start space-x-3">
-              <div className="avatar">
-                <div className="w-12 rounded-full">
-                  <img
-                    src={user?.photoURL || 'https://i.pravatar.cc/150?img=3'}
-                    alt="User"
-                  />
-                </div>
-              </div>
-              <div className="flex-1">
-                <textarea
-                  className="textarea textarea-bordered w-full"
-                  placeholder={
-                    user
-                      ? 'What are you selling today?'
-                      : 'Please login to create a post'
-                  }
-                  value={newPostCaption}
-                  onChange={(e) => setNewPostCaption(e.target.value)}
-                  disabled={!user}
-                ></textarea>
-                <div className="flex justify-between items-center mt-2">
-                  <div>
-                    <input
-                      type="file"
-                      className="file-input file-input-bordered file-input-sm"
-                      accept="image/*"
-                      disabled={!user}
-                    />
-                  </div>
-                  <button
-                    type="submit"
-                    className="btn btn-primary btn-sm"
-                    disabled={!user}
-                  >
-                    Post
-                  </button>
-                </div>
-              </div>
-            </div>
-          </form>
-        </div>
-      </div>
+      <PostCreator onPostCreated={handlePostCreated} />
 
-      {/* Posts Feed */}
       {posts.map((post) => (
         <div key={post.id} className="card bg-base-100 shadow-md mb-6">
           <div className="card-body">
-            {/* Post Header */}
             <div className="flex items-center space-x-3 mb-4">
               <div className="avatar">
                 <div className="w-10 rounded-full">
-                  <img src={post.user.avatar} alt={post.user.name} />
+                  <img 
+                    src={post.user.avatar} 
+                    alt={post.user.name}
+                    onError={(e) => {
+                      (e.target as HTMLImageElement).src = `https://i.pravatar.cc/150?u=${post.id}`;
+                    }}
+                  />
                 </div>
               </div>
               <div>
                 <h3 className="font-semibold">{post.user.name}</h3>
-                <p className="text-sm text-gray-500">2 hours ago</p>
+                <p className="text-sm text-gray-500">
+                  {new Date(post.id).toLocaleString()} {/* Temporary - implement proper time formatting */}
+                </p>
               </div>
             </div>
 
-            {/* Post Image */}
             <figure className="mb-4">
-              <img src={post.image} alt="Post" className="rounded-lg w-full" />
+              <img 
+                src={post.image} 
+                alt="Post" 
+                className="rounded-lg w-full"
+                onError={(e) => {
+                  (e.target as HTMLImageElement).src = 'https://via.placeholder.com/500x300';
+                }}
+              />
             </figure>
 
-            {/* Post Caption */}
             <p className="mb-4">{post.caption}</p>
 
-            {/* Post Actions */}
             <div className="flex justify-between items-center">
               <div className="flex space-x-4">
                 <button
                   className="flex items-center space-x-1"
-                  onClick={() => handleLike(post.id)}
+                  onClick={() => handleLike(post.id, post.isLiked)}
                 >
                   {post.isLiked ? (
                     <FaHeart className="text-red-500" />
@@ -182,25 +134,28 @@ const IndexMainContent = () => {
                   <span>{post.comments}</span>
                 </button>
               </div>
-              <button className="btn btn-ghost btn-sm">
+              <button title="Share" className="btn btn-ghost btn-sm">
                 <FaShare />
               </button>
             </div>
 
-            {/* Comments Section */}
             <div className="mt-4 pt-4 border-t">
               <div className="flex space-x-3">
                 <div className="avatar">
                   <div className="w-8 rounded-full">
-                    <img src="https://i.pravatar.cc/150?img=4" alt="Commenter" />
+                    <img
+                      src={user?.photoURL || 'https://i.pravatar.cc/150?img=4'}
+                      alt="Commenter"
+                      onError={(e) => {
+                        (e.target as HTMLImageElement).src = 'https://i.pravatar.cc/150?img=4';
+                      }}
+                    />
                   </div>
                 </div>
                 <div className="flex-1">
                   <input
                     type="text"
-                    placeholder={
-                      user ? 'Write a comment...' : 'Login to comment...'
-                    }
+                    placeholder={user ? 'Write a comment...' : 'Login to comment...'}
                     className="input input-bordered w-full input-sm"
                     disabled={!user}
                   />

@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { NavLink } from 'react-router-dom';
+import { NavLink, useNavigate } from 'react-router-dom';
 import { FaBars } from 'react-icons/fa';
 import { useAuth } from '../../src/context/AuthContext';
 
@@ -7,11 +7,12 @@ const MobileHeader = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [renderPanel, setRenderPanel] = useState(false);
   const { user, logout } = useAuth();
+  const navigate = useNavigate();
 
   const openMenu = () => {
-    setRenderPanel(true); // Start rendering
+    setRenderPanel(true);
     requestAnimationFrame(() => {
-      setIsOpen(true); // Animate on next frame
+      setIsOpen(true);
     });
   };
 
@@ -21,7 +22,6 @@ const MobileHeader = () => {
 
   useEffect(() => {
     if (!isOpen) {
-      // Wait for animation to end before unmounting
       const timeout = setTimeout(() => setRenderPanel(false), 300);
       return () => clearTimeout(timeout);
     }
@@ -29,6 +29,11 @@ const MobileHeader = () => {
 
   const handleLogout = async () => {
     await logout();
+    closeMenu();
+  };
+
+  const handleLogin = () => {
+    navigate('/login');
     closeMenu();
   };
 
@@ -41,10 +46,7 @@ const MobileHeader = () => {
           </NavLink>
         </div>
         <div className="flex-none">
-          <button
-            className="btn btn-square btn-ghost"
-            onClick={openMenu}
-          >
+          <button type='button' title='isOpen' className="btn btn-square btn-ghost" onClick={openMenu}>
             <FaBars size={24} />
           </button>
         </div>
@@ -69,23 +71,34 @@ const MobileHeader = () => {
           >
             <div className="p-4 border-b flex items-center gap-3">
               <img
-                src={user?.photoURL ?? '/default-avatar.png'}
+                src={user?.photoURL ?? '/avatar-default-svgrepo-com.svg'}
                 alt="User avatar"
                 className="w-10 h-10 rounded-full object-cover"
               />
               <span className="font-medium text-base">
-                {user?.displayName ?? 'User'}
+                {user?.displayName ?? 'Not Signed In'}
               </span>
             </div>
+
             <ul className="menu menu-vertical gap-2 p-4">
-              <li>
-                <NavLink to="/profile" onClick={closeMenu}>
-                  My Profile
-                </NavLink>
-              </li>
-              <li>
-                <button onClick={handleLogout}>Logout</button>
-              </li>
+              {user ? (
+                <>
+                  <li>
+                    <NavLink to="/profile" onClick={closeMenu}>
+                      My Profile
+                    </NavLink>
+                  </li>
+                  <li>
+                    <button onClick={handleLogout}>Logout</button>
+                  </li>
+                </>
+              ) : (
+                <li>
+                  <button onClick={handleLogin} className="btn btn-primary w-full">
+                    Login Now
+                  </button>
+                </li>
+              )}
             </ul>
           </div>
         </>

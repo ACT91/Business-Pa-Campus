@@ -1,8 +1,7 @@
-// firebase.ts
 import { initializeApp } from 'firebase/app';
 import { getAuth } from 'firebase/auth';
-
-
+import { getFirestore } from 'firebase/firestore';
+import { getStorage } from 'firebase/storage';
 
 const firebaseConfig = {
   apiKey: "AIzaSyB8DhYsFdN5QYhSmbwiopTaKHSMapPkGbM",
@@ -14,5 +13,13 @@ const firebaseConfig = {
   measurementId: "G-9MFBRM5DRF"
 };
 
-export const app = initializeApp(firebaseConfig); // ✅ Named export
+// Initialize Firebase
+const app = initializeApp(firebaseConfig);
+
+// Firebase services
 export const auth = getAuth(app);
+export const db = getFirestore(app);
+export const storage = getStorage(app, "gs://businesspacampus.firebasestorage.app");
+
+// Export the app instance
+export { app };
