@@ -1,91 +1,13 @@
-import { useCallback } from 'react';
-import { doc, updateDoc, arrayUnion, arrayRemove, increment, type DocumentData } from 'firebase/firestore';
-import { FaHeart, FaRegHeart, FaComment, FaShare } from 'react-icons/fa';
-import { db } from '../../src/firebase';
-import { useAuth } from '../../src/context/useAuth';
-import PostCreator from '../Media/PostCreator';
-import { formatTimePosted } from '../../utils/TimeUtils/formatTime';
-import { useEndlessScroll } from '../../utils/PostUtils/endlessScroll';
-
-type Post = {
-  id: string;
-  user: {
-    uid: string;
-    name: string;
-    avatar: string;
-  };
-  image: string;
-  caption: string;
-  likes: number;
-  comments: number;
-  isLiked: boolean;
-  timePosted: Date;
-};
-
-const IndexMainContent = () => {
-  const { user, login } = useAuth();
-
-  const transformPost = useCallback((data: DocumentData & { id: string }): Post => {
-    return {
-      id: data.id,
-      user: {
-        uid: data.UserID,
-        name: data.UserName,
-        avatar: data.UserPhotoURL || `https://i.pravatar.cc/150?u=${data.UserID}`,
-      },
-      image: data.ImageURL,
-      caption: data.PostItSelf,
-      likes: data.NumberOfLikes || 0,
-      comments: data.NumberOfComments || 0,
-      isLiked: user ? data.LikedBy?.includes(user.uid) : false,
-      timePosted: data.TimePosted?.toDate() || new Date(),
-    };
-  }, [user]);
-
-  const { items: posts, loading, hasMore, error } = useEndlessScroll<Post>(
-    'posts',
-    'TimePosted',
-    5,
-    transformPost
-  );
-
-  const handleLike = useCallback(async (postId: string, isLiked: boolean) => {
-    if (!user) {
-      login();
-      return;
-    }
-
-    const postRef = doc(db, 'posts', postId);
-    await updateDoc(postRef, {
-      NumberOfLikes: isLiked ? increment(-1) : increment(1),
-      LikedBy: isLiked ? arrayRemove(user.uid) : arrayUnion(user.uid),
-    });
-  }, [user, login]);
-
-  if (error) {
-    return (
-      <div className="container mx-auto px-4 py-6">
-        <div className="alert alert-error">
-          Error loading posts: {error.message}
-        </div>
-      </div>
-    );
-  }
-
-  return (
-    <div className="container mx-auto px-4 py-6">
-      <PostCreator onPostCreated={() => window.location.reload()} />
 
       {posts.map((post) => (
         <div key={post.id} className="card bg-base-100 shadow-md mb-6">
-          <div className="card-body">
+                    <div className="card-body">
             <div className="flex items-center space-x-3 mb-4">
               <div className="avatar">
                 <div className="w-10 rounded-full">
                   <img
                     src={post.user.avatar}
                     alt={post.user.name}
-                    loading="lazy"
                     onError={(e) => {
                       (e.target as HTMLImageElement).src = `https://i.pravatar.cc/150?u=${post.user.uid}`;
                     }}
@@ -105,7 +27,6 @@ const IndexMainContent = () => {
                 src={post.image}
                 alt={post.caption}
                 className="rounded-lg w-auto h-[300px] object-cover"
-                loading="lazy"
                 onError={(e) => {
                   (e.target as HTMLImageElement).src = 'https://via.placeholder.com/500x300';
                 }}
@@ -163,20 +84,3 @@ const IndexMainContent = () => {
           </div>
         </div>
       ))}
-
-      {loading && (
-        <div className="flex justify-center my-8">
-          <span className="loading loading-spinner loading-lg"></span>
-        </div>
-      )}
-
-      {!hasMore && posts.length > 0 && (
-        <div className="text-center py-4 text-gray-500">
-          You've reached the end
-        </div>
-      )}
-    </div>
-  );
-};
-
-export default IndexMainContent;

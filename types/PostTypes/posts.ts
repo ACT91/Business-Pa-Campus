@@ -1,4 +1,4 @@
-// src/types/post.ts
+// utils/PostTypes/posts.ts
 import { Timestamp } from 'firebase/firestore';
 
 export interface PostInput {

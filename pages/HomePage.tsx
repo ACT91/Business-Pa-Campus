@@ -5,10 +5,11 @@ import BottomNav from '../components/layout/BottomNav';
 
 const HomePage = () => {
   return (
-    <div className="min-h-screen flex flex-col bg-base-100 overflow-y-auto">
+    <div className="min-h-screen flex flex-col bg-base-100">
       <MobileHeader />
       <Header />
       <MainContent />
+    
       <BottomNav />
     </div>
   );

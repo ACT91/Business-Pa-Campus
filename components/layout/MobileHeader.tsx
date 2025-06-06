@@ -42,7 +42,7 @@ const MobileHeader = () => {
       <div className="navbar">
         <div className="flex-1">
           <NavLink to="/" className="btn btn-ghost normal-case text-xl">
-            Business Pa Campus
+            Malonda Pa Malawi
           </NavLink>
         </div>
         <div className="flex-none">
