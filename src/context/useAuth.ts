@@ -4,6 +4,7 @@ import type { User } from 'firebase/auth';
 
 export interface AuthContextType {
   user: User | null;
+  loading : boolean;
   login: () => Promise<void>;
   logout: () => Promise<void>;
   updateUserProfile: (displayName: string, photoURL: string) => Promise<void>;
@@ -18,3 +19,5 @@ export const useAuth = () => {
   }
   return context;
 };
+
+export default useAuth;

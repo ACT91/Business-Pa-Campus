@@ -42,7 +42,7 @@ const MobileHeader = () => {
       <div className="navbar">
         <div className="flex-1">
           <NavLink to="/" className="btn btn-ghost normal-case text-xl">
-            Malonda Pa Malawi
+            Malonda Malawi
           </NavLink>
         </div>
         <div className="flex-none">
@@ -108,3 +108,4 @@ const MobileHeader = () => {
 };
 
 export default MobileHeader;
+// This code defines a mobile header component for a React application that includes a navigation menu.

@@ -7,6 +7,7 @@ import PostCreator from '../Media/PostCreator';
 import { formatTimePosted } from '../../utils/TimeUtils/formatTime';
 import { useEndlessScroll } from '../../utils/PostUtils/endlessScroll';
 
+
 type Post = {
   id: string;
   user: {
